@@ -190,7 +190,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _passwordController = TextEditingController();
 
   Future<void> registerUser() async {
-    final url = Uri.parse('http://localhost:5175/api/User');
+    final url = Uri.parse('http://127.0.0.1:5175/api/User');
     final response = await http.post(
       url,
       headers: {'Content-Type': 'application/json'},
