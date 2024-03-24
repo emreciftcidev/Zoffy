@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -8,6 +7,19 @@ void main() {
     home: LoginScreen(),
   ));
 }
+class EmptyScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Başarılı Giriş'),
+      ),
+      body: Center(
+        child: Text('Giriş Başarılı! Hoş Geldiniz.'),
+      ),
+    );
+  }
+}
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -15,10 +27,39 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _usernameController = TextEditingController();
-  final _passwordController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
 
+Future<void> _login() async {
+    final url = Uri.parse('http://localhost:5175/api/Login'); 
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'email': _emailController.text, 
+        'password': _passwordController.text, 
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      Navigator.push(context, MaterialPageRoute(builder: (context) => EmptyScreen()));
+    } else {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('Hata'),
+          content: Text('Kullanıcı adı veya şifre yanlış.'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('Tamam'),
+            ),
+          ],
+        ),
+      );
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -60,14 +101,14 @@ class _LoginScreenState extends State<LoginScreen> {
                 CircleAvatar(
                   radius: 80,
                   backgroundColor: Colors.white,
-                  backgroundImage: AssetImage('lib/assets/myfoto.jpg'),
+                  backgroundImage: AssetImage('lib/assets/myfoto.jpp'),
                 ),
                 SizedBox(height: 48.0),
-                _buildTextField(_usernameController, 'Kullanıcı Adı'),
+                _buildTextField(_emailController, 'E-Mail'),
                 SizedBox(height: 16.0),
                 _buildPasswordTextField(),
                 SizedBox(height: 30.0),
-                _buildLoginButton('Giriş Yap', () {}),
+                _buildLoginButton('Giriş Yap', _login),
                 SizedBox(height: 12.0),
                 _buildLoginButton('Müşteri Ol', () {
                   Navigator.push(
@@ -189,45 +230,43 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  Future<void> registerUser() async {
-    final url = Uri.parse('http://127.0.0.1:5175/api/User');
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'nickname': _usernameController.text,
-        'email': _emailController.text,
-        'password': _passwordController.text,
-        'name': _nameController.text,
-        'surname': _surnameController.text,
-        'tc': _tcController.text,
-        'address': _addressController.text,
-        'phone': _phoneController.text,
-        'salary': _incomeController.text,
-        'job': _professionController.text,
-      }),
-    );
+ Future<void> registerUser() async {
+  final url = Uri.parse('http://localhost:5175/api/User');
+  final response = await http.post(
+    url,
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode({
+      'nickname': _usernameController.text,
+      'email': _emailController.text,
+      'password': _passwordController.text,
+      'name': _nameController.text,
+      'surname': _surnameController.text,
+      'tc': _tcController.text,
+      'address': _addressController.text,
+      'phone': _phoneController.text,
+      'salary': _incomeController.text,
+      'job': _professionController.text,
+    }),
+  );
 
-    if (response.statusCode == 200) {
-      // Kayıt başarılı, final sayfasına yönlendir
-      _pageController.jumpToPage(3);
-    } else {
-      // Hata mesajı göster
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text('Hata'),
-          content: Text('Kayıt sırasında bir hata oluştu.'),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text('Tamam'),
-            ),
-          ],
-        ),
-      );
-    }
+  if (response.statusCode == 200) {
+    _pageController.jumpToPage(4);
+  } else {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Hata'),
+        content: Text('Kayıt sırasında bir hata oluştu.'),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('Tamam'),
+          ),
+        ],
+      ),
+    );
   }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -246,7 +285,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             padding: const EdgeInsets.all(16.0),
             child: PageView(
               controller: _pageController,
-              physics: NeverScrollableScrollPhysics(), // Prevent swipe navigation
+              physics: NeverScrollableScrollPhysics(),
               children: [
                 _buildPageOne(),
                 _buildPageTwo(),
@@ -269,7 +308,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         TextField(controller: _surnameController, decoration: InputDecoration(labelText: 'Soyisminiz')),
         TextField(controller: _phoneController, decoration: InputDecoration(labelText: 'Telefon Numaranız')),
         TextField(controller: _emailController, decoration: InputDecoration(labelText: 'E-posta Adresiniz')),
-        SizedBox(height: 30.0), // Add SizedBox to create space between text fields and button
+        SizedBox(height: 30.0), 
         _buildLoginButton('Devam Et', () => _pageController.nextPage(duration: Duration(milliseconds: 300), curve: Curves.easeIn)),
       ],
     );
@@ -288,15 +327,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   Widget _buildPageThree() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        TextField(controller: _usernameController, decoration: InputDecoration(labelText: 'Kullanıcı Adınızı Belirleyin')),
-        TextField(controller: _passwordController, decoration: InputDecoration(labelText: 'Şifrenizi Belirleyin')),
-        _buildLoginButton('Ayrıcalıklar Dünyasına Giriş Yap', registerUser),
-      ],
-    );
-  }
+  return Column(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      TextField(controller: _usernameController, decoration: InputDecoration(labelText: 'Kullanıcı Adınızı Belirleyin')),
+      TextField(controller: _passwordController, decoration: InputDecoration(labelText: 'Şifrenizi Belirleyin')),
+      _buildLoginButton('Ayrıcalıklar Dünyasına Giriş Yap', registerUser),
+    ],
+  );
+}
+
 
   Widget _buildFinalPage() {
     return Column(
